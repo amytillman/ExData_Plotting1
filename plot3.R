@@ -1,0 +1,34 @@
+# The purpose of plot3.R is to:
+# -read in the household_power_consumption.txt file located in the working directory,
+# -subset on (or read in) Feb-2007 data (2007-02-01 and 2007-02-02), and 
+# -create a graph of energy sub metering for each sub metering (1-3) over time (date+time)
+
+#read in data
+powdat <- read.table("./household_power_consumption.txt", header=TRUE, sep=";", 
+                     stringsAsFactors=FALSE,na.strings=c("NA","?",""," "))
+
+#str(powdat)
+
+#tell R that you have a date variable and provide format of date
+powdat$Date <- as.Date(powdat$Date, format="%d/%m/%Y")
+
+#subset on 01Feb2007 and 02Feb2007
+powdat_subset <- subset(powdat, Date=="2007-02-01" | Date=="2007-02-02")
+
+#create datetime variable and append back on to dataset
+datetime <- strptime(paste(powdat_subset$Date,powdat_subset$Time,sep=" "), "%Y-%m-%d %H:%M:%S", tz="")
+powdat_subset1 <- cbind(powdat_subset,datetime)
+
+
+## plot energy sub metering over time for each sub metering (1-3)
+png("plot3.png", width=480, height=480) #default units is pixels already
+plot(powdat_subset1$datetime, powdat_subset1$Sub_metering_1, 
+     xlim=c(min(powdat_subset1$datetime),max(powdat_subset1$datetime)),
+     ylim=c(min(powdat_subset1$Sub_metering_1,powdat_subset1$Sub_metering_2,powdat_subset1$Sub_metering_3),
+            max(powdat_subset1$Sub_metering_1,powdat_subset1$Sub_metering_2,powdat_subset1$Sub_metering_3)),
+     xlab="", ylab="Energy sub metering",type="n")
+lines(powdat_subset1$datetime, powdat_subset1$Sub_metering_1,col="black")
+lines(powdat_subset1$datetime, powdat_subset1$Sub_metering_2,col="red")
+lines(powdat_subset1$datetime, powdat_subset1$Sub_metering_3,col="blue")
+legend("topright",lty=1,col=c("black","red","blue"),legend=c("Sub_metering_1","Sub_metering_2","Sub_metering_3"))
+dev.off()
